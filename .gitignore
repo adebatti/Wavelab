@@ -1,4 +1,21 @@
+# Build artifacts
 *.o
 *.a
 *.so
 *.dylib
+WaveLab
+
+# macOS junk
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*.tmp
+*~
+
+# Audio files (test data)
+*.wav
+
+# Raygui source if downloaded
+raygui/
