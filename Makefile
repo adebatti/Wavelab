@@ -1,12 +1,30 @@
+# Makefile for WaveLab on macOS (Homebrew setup)
+
 CC = gcc
-CFLAGS = -Wall -std=c89 -O2 -I. `pkg-config --cflags raylib`
-LDFLAGS = `pkg-config --libs raylib` -lm
+CFLAGS = -std=c89 -pedantic -Wall \
+	-I./src \
+	-I./third_party \
+	-I./raygui \
+	-I/opt/homebrew/opt/raylib/include
 
-SRCS = main.c audio.c wave.c filters.c ui.c
-OBJS = $(SRCS:.c=.o)
+LDFLAGS = -L/opt/homebrew/opt/raylib/lib \
+	-lraylib -lm \
+	-framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio -framework CoreVideo
 
-wavelab: $(OBJS)
-	$(CC) $(CFLAGS) -o wavelab $(OBJS) $(LDFLAGS)
+SRC = src/main.c src/audio.c src/filters.c src/ui.c src/wave.c
+OBJ = $(SRC:.c=.o) third_party/miniaudio_impl.o
+TARGET = WaveLab
+
+all: $(TARGET)
+
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+third_party/miniaudio_impl.o: third_party/miniaudio_impl.c
+	$(CC) -std=c99 -pedantic -Wall -I./src -I./third_party -I./raygui -I/opt/homebrew/opt/raylib/include -c $< -o $@
 
 clean:
-	rm -f *.o wavelab
+	rm -f $(OBJ) $(TARGET)
