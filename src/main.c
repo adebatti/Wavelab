@@ -1,7 +1,7 @@
 /* 
  * File: main.c
  * Description: Main entry point for the WaveLab application.
- * Initializes audio, processes user input, applies filters, and draws waveform.
+ * Initializes audio (playback or capture), processes user input, applies filters, and draws waveform.
  * C89 compliant.
  */
 
@@ -13,55 +13,74 @@
  #include "ui.h"
  #include "miniaudio.h"
  #include <string.h>
-
+ #include "audio_input.h"
+ 
  #define MINIAUDIO_IMPLEMENTATION
  #define SAMPLE_FILE "sample.wav"
  
  int main(int argc, char *argv[])
- {
+{
     int testMode = 0;
+    int liveMode = 0;
+    int i;
     ma_decoder decoder;
     ma_device device;
     AudioState state;
     float gain;
 
-    /* Check for command-line flag */
-    if (argc > 1 && strcmp(argv[1], "--test") == 0) {
-        testMode = 1;
+    /* Parse command-line args */
+    for (i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--test") == 0) {
+            testMode = 1;
+        } else if (strcmp(argv[i], "--live") == 0) {
+            liveMode = 1;
+        }
     }
 
-    /* Init window */
-    InitWindow(WIDTH, HEIGHT, testMode ? "WaveLab (Test Mode)" : "WaveLab");
-    SetTargetFPS(testMode ? 10 : 60);  /* Lower FPS for testing */
+    InitWindow(WIDTH, HEIGHT, testMode ? "WaveLab (Test Mode)" :
+                                      (liveMode ? "WaveLab (Live Input)" : "WaveLab"));
+    SetTargetFPS(testMode ? 10 : 60);
 
-     /* Initialize state */
-     gain = 1.0f;
-     state.bufferSize = 0;
-     
-     /* Initialize the Raylib window */
-     InitWindow(WIDTH, HEIGHT, "WaveLab");
-     SetTargetFPS(60);
-     
-     if (InitAudio(SAMPLE_FILE, &decoder, &device, &state) != 0) {
-         CloseWindow();
-         return 1;
-     }
-     
-     while (!WindowShouldClose()) {
-         /* Handle user input */
-         HandleInput(&gain);
-         
-         /* Apply gain filter */
-         ApplyGain(state.buffer, state.bufferSize, gain);
-         
-         BeginDrawing();
-         /* Draw the waveform */
-         DrawWave(state.buffer, state.bufferSize, WIDTH, HEIGHT);
-         EndDrawing();
-     }
-     
-     CleanupAudio(&device, &decoder);
-     CloseWindow();
-     return 0;
- }
+    gain = 1.0f;
+    state.bufferSize = 0;
 
+    if (testMode) {
+        if (InitAudio(SAMPLE_FILE, &decoder, &device, &state) != 0) {
+            CloseWindow();
+            return 1;
+        }
+    } else if (liveMode) {
+        if (InitLiveInput(&device) != 0) {
+            CloseWindow();
+            return 1;
+        }
+    }
+
+    while (!WindowShouldClose()) {
+        HandleInput(&gain);
+
+        if (testMode) {
+            ApplyGain(state.buffer, state.bufferSize, gain);
+        } else if (liveMode) {
+            ApplyGain(inputBuffer, inputBufferSize, gain);
+        }
+
+        BeginDrawing();
+        if (testMode) {
+            DrawWave(state.buffer, state.bufferSize, WIDTH, HEIGHT);
+        } else if (liveMode) {
+            DrawWave(inputBuffer, inputBufferSize, WIDTH, HEIGHT);
+        }
+        EndDrawing();
+    }
+
+    if (testMode) {
+        CleanupAudio(&device, &decoder);
+    } else if (liveMode) {
+        CleanupLiveInput(&device);
+    }
+
+    CloseWindow();
+    return 0;
+}
+ 

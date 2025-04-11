@@ -7,16 +7,16 @@
  #ifndef AUDIO_INPUT_H
  #define AUDIO_INPUT_H
  
- #include <stddef.h>  /* for NULL */
  #include "miniaudio.h"
+ #include "config.h"
  
  #define MAX_INPUT_SAMPLES 4096
  
  extern float inputBuffer[MAX_INPUT_SAMPLES];
  extern int inputBufferSize;
  
- void StartLiveInput(void);
- void StopLiveInput(void);
- void ReadLiveSamples(float *buffer, int count);
+ int InitLiveInput(ma_device *device);
+ void CleanupLiveInput(ma_device *device);
  
  #endif /* AUDIO_INPUT_H */
+ 

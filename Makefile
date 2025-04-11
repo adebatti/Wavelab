@@ -11,7 +11,7 @@ LDFLAGS = -L/opt/homebrew/opt/raylib/lib \
 	-lraylib -lm \
 	-framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio -framework CoreVideo
 
-SRC = src/main.c src/audio.c src/filters.c src/ui.c src/wave.c
+SRC = src/main.c src/audio.c src/audio_input.c src/filters.c src/ui.c src/wave.c
 OBJ = $(SRC:.c=.o) third_party/miniaudio_impl.o
 TARGET = WaveLab
 
