@@ -12,17 +12,28 @@
  #include "filters.h"
  #include "ui.h"
  #include "miniaudio.h"
+ #include <string.h>
+
  #define MINIAUDIO_IMPLEMENTATION
- 
  #define SAMPLE_FILE "sample.wav"
  
- int main(void)
+ int main(int argc, char *argv[])
  {
-     ma_decoder decoder;
-     ma_device device;
-     AudioState state;
-     float gain;
-     
+    int testMode = 0;
+    ma_decoder decoder;
+    ma_device device;
+    AudioState state;
+    float gain;
+
+    /* Check for command-line flag */
+    if (argc > 1 && strcmp(argv[1], "--test") == 0) {
+        testMode = 1;
+    }
+
+    /* Init window */
+    InitWindow(WIDTH, HEIGHT, testMode ? "WaveLab (Test Mode)" : "WaveLab");
+    SetTargetFPS(testMode ? 10 : 60);  /* Lower FPS for testing */
+
      /* Initialize state */
      gain = 1.0f;
      state.bufferSize = 0;
@@ -54,4 +65,3 @@
      return 0;
  }
 
- 
